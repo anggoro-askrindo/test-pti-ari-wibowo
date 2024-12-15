@@ -1,2 +1,2 @@
-# test-pti-naufal-pradana
-Tes Teknikal Software Enginnering Naufal Pradana
+# test-pti-ari-wibowo
+Tes Teknikal Software Enginnering Achmad Ari Wibowo
