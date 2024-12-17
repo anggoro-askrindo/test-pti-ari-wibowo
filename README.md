@@ -1,4 +1,4 @@
-# My API Service
+# Transaksi penutupan produk Asuransi Mikro Service
 
 This project is an API service built with Spring Boot 3.4.0, Maven, and Java 17. It uses PostgreSQL as the database and implements JWT and OAuth for authentication and authorization.
 
