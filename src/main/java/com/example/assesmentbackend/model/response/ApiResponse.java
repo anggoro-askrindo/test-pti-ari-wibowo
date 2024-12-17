@@ -79,6 +79,15 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static <T> ApiResponse<T> forbidden(String message) {
+        return ApiResponse.<T>builder()
+                .timestamp(currentDateTime())
+                .success(false)
+                .message(message)
+                .httpStatus(HttpStatus.FORBIDDEN.value())
+                .build();
+    }
+
     @JsonIgnore
     public ResponseEntity<Object> toResponseEntity() {
         return ResponseEntity.status(this.httpStatus).body(this);

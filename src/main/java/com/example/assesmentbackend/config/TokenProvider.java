@@ -1,5 +1,6 @@
 package com.example.assesmentbackend.config;
 
+import com.example.assesmentbackend.exception.JwtExpiredException;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,10 +43,14 @@ public class TokenProvider implements Serializable {
     }
 
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(SIGNING_KEY)
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parser()
+                    .setSigningKey(SIGNING_KEY)
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            throw new JwtExpiredException("Token Expired");
+        }
     }
 
     private Boolean isTokenExpired(String token) {

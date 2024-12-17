@@ -1,5 +1,7 @@
 package com.example.assesmentbackend.util;
 
+import com.example.assesmentbackend.exception.BadRequestException;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -54,6 +56,10 @@ public class DateHelperUtil {
 
         public static LocalDate toLocalDate (String format, String dateStr){
             DateTimeFormatter DATE_FORMATTER = format != null ? DateTimeFormatter.ofPattern(format) : DATE_FORMATTER_DEFAULT;
-            return LocalDate.parse(dateStr, DATE_FORMATTER);
+            try {
+                return LocalDate.parse(dateStr, DATE_FORMATTER);
+            } catch (DateTimeParseException e) {
+                throw new BadRequestException(dateStr+ " could not be parsed at index 2");
+            }
         }
     }

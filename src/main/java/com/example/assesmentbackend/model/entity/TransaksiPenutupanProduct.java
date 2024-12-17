@@ -3,6 +3,7 @@ package com.example.assesmentbackend.model.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -75,4 +76,10 @@ public class TransaksiPenutupanProduct {
 
     @Column(name = "jenis_paket", nullable = false, length = 150)
     private String jenisPaket;
+
+    @Column(name = "modified_by")
+    private String modified_by;
+
+    @Column(name = "modified_date")
+    private Timestamp modified_date;
 }

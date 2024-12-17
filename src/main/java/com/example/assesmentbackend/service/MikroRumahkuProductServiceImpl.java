@@ -3,11 +3,13 @@ package com.example.assesmentbackend.service;
 import com.example.assesmentbackend.exception.BadRequestException;
 import com.example.assesmentbackend.model.entity.TransaksiPenutupanProduct;
 import com.example.assesmentbackend.model.request.TransactionRequest;
+import com.example.assesmentbackend.model.request.UpdateTransactionRequest;
 import com.example.assesmentbackend.repo.MLookupRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import static com.example.assesmentbackend.util.DateHelperUtil.*;
+import java.sql.Timestamp;
+import java.util.Date;
 
 @Component("9001")
 @Service
@@ -21,19 +23,6 @@ public class MikroRumahkuProductServiceImpl implements ProductService {
 
     @Override
     public TransaksiPenutupanProduct createTransaction(TransactionRequest transactionRequest) {
-        String hubungan = mLookupRepository
-                .findByLookupGroupAndKeyOnly("ahli_waris", transactionRequest.getAhliWaris().getHubungan())
-                .orElseThrow(() -> new BadRequestException("Hubungan ahli waris tidak ditemukan di lookup table"))
-                .getLookupKey();
-        String informasiKepemilikan = mLookupRepository
-                .findByLookupGroupAndKeyOnly("asmik_info_kepemilikan", transactionRequest.getPertanggungan().getInformasiKepemilikan())
-                .orElseThrow(() -> new BadRequestException("Informasi kepemilikan tidak ditemukan di lookup table"))
-                .getLookupKey();
-        boolean validateJangkaWaktuAwal = isBetweenDate("dd/MM/yyyy", transactionRequest.getPertanggungan().getJangkaWaktuAwal(), 3, 3);
-        if (!validateJangkaWaktuAwal) throw new BadRequestException("Tanggal waktu awal harus kurang dari 3 dan lebih dari 3 hari");
-        boolean validateDateOneYear = isWithinOneYear("dd/MM/yyyy", transactionRequest.getPertanggungan().getJangkaWaktuAwal());
-        if (!validateDateOneYear) throw new BadRequestException("Tanggal waktu akhir harus satu tahun dari jangka waktu awal");
-
         return TransaksiPenutupanProduct
                 .builder()
                 .productCode(transactionRequest.getProductCode())
@@ -43,13 +32,40 @@ public class MikroRumahkuProductServiceImpl implements ProductService {
                 .nomorTelepon(transactionRequest.getTertanggung().getNoTelp())
                 .alamat(transactionRequest.getPertanggungan().getAlamat())
                 .namaAhliWaris(transactionRequest.getAhliWaris().getNama())
-                .hubunganAhliWaris(hubungan)
-                .informasiKepemilikan(informasiKepemilikan)
-                .tanggalLahirAhliWaris(toLocalDate("dd/MM/yyyy", transactionRequest.getAhliWaris().getTanggalLahir()))
+                .hubunganAhliWaris(lookup("ahli_waris", transactionRequest.getAhliWaris().getHubungan()))
+                .informasiKepemilikan(lookup("asmik_info_kepemilikan", transactionRequest.getPertanggungan().getInformasiKepemilikan()))
+                .tanggalLahirAhliWaris(transactionRequest.getAhliWaris().getTanggalLahirDate())
                 .noTelpAhliWaris(transactionRequest.getAhliWaris().getNomorTelepon())
-                .jangkaWaktuAwal(toLocalDate("dd/MM/yyyy", transactionRequest.getPertanggungan().getJangkaWaktuAwal()))
-                .jangkaWaktuAkhir(toLocalDate("dd/MM/yyyy", transactionRequest.getPertanggungan().getJangkaWaktuAkhir()))
+                .jangkaWaktuAwal(transactionRequest.getPertanggungan().getJangkaWaktuAwalDate(transactionRequest.getProductCode()))
+                .jangkaWaktuAkhir(transactionRequest.getPertanggungan().getJangkaWaktuAkhirDate())
                 .jenisPaket(transactionRequest.getJenisPaket())
                 .build();
+    }
+
+    @Override
+    public TransaksiPenutupanProduct updateTransaction(TransaksiPenutupanProduct transaksiPenutupanProduct, UpdateTransactionRequest transactionRequest) {
+        if (transactionRequest.getProductCode() != null) transaksiPenutupanProduct.setProductCode(transactionRequest.getProductCode());
+        if (transactionRequest.getTertanggung().getNama() != null) transaksiPenutupanProduct.setNamaTertanggung(transactionRequest.getTertanggung().getNama());
+        if (transactionRequest.getTertanggung().getNoKtp() != null) transaksiPenutupanProduct.setNoKtp(transactionRequest.getTertanggung().getNoKtp());
+        if (transactionRequest.getTertanggung().getEmail() != null) transaksiPenutupanProduct.setEmail(transactionRequest.getTertanggung().getEmail());
+        if (transactionRequest.getTertanggung().getNoTelp() != null) transaksiPenutupanProduct.setNomorTelepon(transactionRequest.getTertanggung().getNoTelp());
+        if (transactionRequest.getPertanggungan().getAlamat() != null) transaksiPenutupanProduct.setAlamat(transactionRequest.getPertanggungan().getAlamat());
+        if (transactionRequest.getAhliWaris().getNama() != null) transaksiPenutupanProduct.setNamaAhliWaris(transactionRequest.getAhliWaris().getNama());
+        if (transactionRequest.getAhliWaris().getHubungan() != null) transaksiPenutupanProduct.setHubunganAhliWaris(lookup("ahli_waris", transactionRequest.getAhliWaris().getHubungan()));
+        if (transactionRequest.getPertanggungan().getInformasiKepemilikan() != null) transaksiPenutupanProduct.setHubunganAhliWaris(lookup("asmik_info_kepemilikan", transactionRequest.getPertanggungan().getInformasiKepemilikan()));
+        if (transactionRequest.getAhliWaris().getTanggalLahir() != null) transaksiPenutupanProduct.setTanggalLahirAhliWaris(transactionRequest.getAhliWaris().getTanggalLahirDate());
+        if (transactionRequest.getPertanggungan().getJangkaWaktuAwal() != null) transaksiPenutupanProduct.setJangkaWaktuAwal(transactionRequest.getPertanggungan().getJangkaWaktuAwalDate(transaksiPenutupanProduct.getProductCode()));
+        if (transactionRequest.getPertanggungan().getJangkaWaktuAkhir() != null) transaksiPenutupanProduct.setJangkaWaktuAkhir(transactionRequest.getPertanggungan().getJangkaWaktuAkhirDate());
+        if (transactionRequest.getJenisPaket() != null) transaksiPenutupanProduct.setJenisPaket(transactionRequest.getJenisPaket());
+        transaksiPenutupanProduct.setModified_by("MARKETING");
+        transaksiPenutupanProduct.setModified_date(new Timestamp(new Date().getTime()));
+        return transaksiPenutupanProduct;
+    }
+
+    public String lookup(String lookupGroup, String keyOnly) {
+        return mLookupRepository
+                .findByLookupGroupAndKeyOnly(lookupGroup, keyOnly)
+                .orElseThrow(() -> new BadRequestException(lookupGroup+ " tidak ditemukan di lookup table"))
+                .getLookupKey();
     }
 }

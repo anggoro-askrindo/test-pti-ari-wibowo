@@ -40,6 +40,12 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return ApiResponse.notFound(ex.getMessage()).toResponseEntity();
     }
 
+    @ExceptionHandler(JwtExpiredException.class)
+    public ResponseEntity<Object> jwtExpiredException(JwtExpiredException ex) {
+        log.error("error", ex);
+        return ApiResponse.forbidden(ex.getMessage()).toResponseEntity();
+    }
+
     @Override
     protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         return ApiResponse.badRequest(ex.getMessage()).toResponseEntity();
